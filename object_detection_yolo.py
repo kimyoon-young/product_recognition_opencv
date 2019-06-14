@@ -40,6 +40,8 @@ modelWeights = "yolov3_prod_76_55000.weights"
 # modelConfiguration = "yolov3.cfg"
 # modelWeights = "yolov3.weights"
 
+#intel GPU only
+#back to CPU model if we don't have intel GPU ( nvidia not supported)
 net = cv.dnn.readNetFromDarknet(modelConfiguration, modelWeights)
 net.setPreferableBackend(cv.dnn.DNN_BACKEND_OPENCV)
 net.setPreferableTarget(cv.dnn.DNN_TARGET_CPU)
