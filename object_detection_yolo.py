@@ -13,6 +13,20 @@ import os.path
 import time
 from PIL import ImageFont, ImageDraw, Image
 
+import requests
+
+item_key = np.empty(80)
+item_key[70] = 1
+item_key[3]  = 2
+item_key[11] = 3
+item_key[41] = 4
+item_key[18] = 5
+
+
+#url = 'http://api.asoft-test1.p-e.kr/process.php?facecode='f1234'&itemkey=4&action='pick''
+
+server_url = "http://api.asoft-test1.p-e.kr/process.php?facecode='f1234'&itemkey={}&action='pick'"
+
 # Initialize the parameters
 confThreshold = 0.5  #Confidence threshold
 nmsThreshold = 0.4   #Non-maximum suppression threshold
@@ -176,9 +190,12 @@ else:
 if (not args.image):
     vid_writer = cv.VideoWriter(outputFile, cv.VideoWriter_fourcc('M','J','P','G'), 30, (round(cap.get(cv.CAP_PROP_FRAME_WIDTH)),round(cap.get(cv.CAP_PROP_FRAME_HEIGHT))))
 
+VALID_NUM = 3
 frame_no = 1
 valid_cnt = 0
 det_class = None
+
+lock = False
 
 while cv.waitKey(1) < 0:
 
@@ -237,8 +254,35 @@ while cv.waitKey(1) < 0:
         valid_cnt = 0
 
     print('valid cnt : {}'.format(valid_cnt))
-    if valid_cnt >= 5:
-        cv.putText(frame, 'product recognized!', (0, 70), cv.FONT_HERSHEY_COMPLEX_SMALL, 1, (0, 255, 0))
+    if valid_cnt == VALID_NUM:
+        print(classIds[0])
+        response = requests.get(server_url.format(item_key[classIds[0]]))
+
+        # 전송 실패시 재전송
+        print('status : ' + str(response.status_code))
+        if response.status_code != 200 :
+            valid_cnt -=1
+
+
+    if valid_cnt >= VALID_NUM :
+        # Display the label at the top of the bounding box
+        text = 'Item moved to cart!'
+        labelSize, baseLine = cv.getTextSize(text, cv.FONT_HERSHEY_SIMPLEX, 1, 1)
+
+
+        #print(height)
+        # get coords based on boundary
+
+        textX = int((frame.shape[1]- labelSize[0]) / 2)
+        textY = int((frame.shape[0] + labelSize[1]) / 2)
+
+        #print(textX)
+        #print(textY)
+
+        cv.rectangle(frame, (textX - int(labelSize[0]/2) , textY - round(1.5 * labelSize[1])),
+                     (textX + round(1.5 * labelSize[0]), textY + baseLine*5), (122, 122, 255), cv.FILLED)
+        cv.putText(frame, '      OK!', (textX-10, textY), cv.FONT_HERSHEY_SIMPLEX, 1.5, (0, 255, 0), 2)
+        cv.putText(frame, 'Item moved to cart!', (textX+20, textY + 40), cv.FONT_HERSHEY_SIMPLEX, 0.8,    (255, 255, 255), 2)
 
     #end time
     end_time = time.time()
