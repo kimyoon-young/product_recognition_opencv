@@ -190,7 +190,7 @@ else:
 if (not args.image):
     vid_writer = cv.VideoWriter(outputFile, cv.VideoWriter_fourcc('M','J','P','G'), 30, (round(cap.get(cv.CAP_PROP_FRAME_WIDTH)),round(cap.get(cv.CAP_PROP_FRAME_HEIGHT))))
 
-VALID_NUM = 3
+VALID_NUM = 40
 frame_no = 1
 valid_cnt = 0
 det_class = None
@@ -203,7 +203,7 @@ while cv.waitKey(1) < 0:
     # get frame from the video
     hasFrame, frame = cap.read()
 
-    if frame_no % 3 != 0:
+    if frame_no % 10 != 0:
         frame_no +=1
         continue
 
